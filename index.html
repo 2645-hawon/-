@@ -10,7 +10,6 @@
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h1, h2 { text-align: center; color: var(--primary); }
         
-        /* 입력 섹션 */
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
         input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
         button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
@@ -18,16 +17,14 @@
         .btn-test { background: #2ecc71; color: white; margin: 5px; }
         .btn-danger { background: var(--accent); color: white; }
 
-        /* 단어 리스트 */
         .word-list { margin-top: 20px; border-top: 2px solid var(--secondary); padding-top: 20px; }
         .word-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
         .word-info { flex: 1; }
 
-        /* 시험 섹션 */
         #test-area { display: none; background: #fff; border: 2px solid var(--primary); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; }
         .hint { color: #888; font-size: 0.9em; margin-top: 10px; display: block; }
         
-        .hidden { display: none; }
+        .guide { font-size: 0.85em; color: #666; margin-bottom: 10px; text-align: right; }
     </style>
 </head>
 <body>
@@ -35,15 +32,16 @@
 <div class="container">
     <h1>📚 My Voca Trainer</h1>
 
+    <div class="guide">* 여러 뜻은 쉼표(,)로 구분하세요. (예: 사과,미안하다)</div>
     <div class="input-group">
         <input type="text" id="wordInput" placeholder="영어 단어">
-        <input type="text" id="meanInput" placeholder="뜻">
+        <input type="text" id="meanInput" placeholder="뜻 (여러 개일 경우 쉼표로 구분)">
         <button class="btn-add" onclick="addWord()">추가</button>
     </div>
 
     <div style="text-align: center; margin-bottom: 20px;">
-        <input type="number" id="startNum" placeholder="시작 번호" style="width: 80px;"> ~ 
-        <input type="number" id="endNum" placeholder="끝 번호" style="width: 80px;">
+        <input type="number" id="startNum" placeholder="시작" style="width: 60px;"> ~ 
+        <input type="number" id="endNum" placeholder="끝" style="width: 60px;">
         <br><br>
         <button class="btn-test" onclick="startTest('word', false)">단어 시험(주관식)</button>
         <button class="btn-test" onclick="startTest('mean', false)">뜻 시험(주관식)</button>
@@ -54,7 +52,8 @@
     <div id="test-area">
         <h2 id="test-title">시험 중</h2>
         <div id="question-container">
-            <h3 id="question-text" style="font-size: 1.5em;"></h3>
+            <h3 id="question-text" style="font-size: 1.5em; margin-bottom: 5px;"></h3>
+            <p style="color:#999; margin-bottom: 20px;">(하나만 써도 정답!)</p>
             <input type="text" id="answerInput" placeholder="정답 입력" onkeypress="if(window.event.keyCode==13){checkAnswer()}">
             <button class="btn-add" onclick="checkAnswer()">제출</button>
             <button id="hint-btn" style="background: #f1c40f;" onclick="showHint()">힌트</button>
@@ -74,9 +73,8 @@
     let incorrectIndices = JSON.parse(localStorage.getItem('incorrect')) || [];
     let currentTestList = [];
     let currentIndex = 0;
-    let testType = ''; // 'word' or 'mean'
+    let testType = '';
 
-    // 단어 추가
     function addWord() {
         const word = document.getElementById('wordInput').value.trim();
         const mean = document.getElementById('meanInput').value.trim();
@@ -89,20 +87,17 @@
         document.getElementById('meanInput').value = '';
     }
 
-    // 단어 삭제
     function deleteWord(index) {
         words.splice(index, 1);
         saveData();
         renderList();
     }
 
-    // 데이터 저장
     function saveData() {
         localStorage.setItem('words', JSON.stringify(words));
         localStorage.setItem('incorrect', JSON.stringify(incorrectIndices));
     }
 
-    // 리스트 렌더링
     function renderList() {
         const container = document.getElementById('list-container');
         const count = document.getElementById('word-count');
@@ -123,7 +118,6 @@
         });
     }
 
-    // 시험 시작
     function startTest(type, onlyIncorrect) {
         const start = parseInt(document.getElementById('startNum').value) || 1;
         const end = parseInt(document.getElementById('endNum').value) || words.length;
@@ -142,7 +136,6 @@
         showQuestion();
     }
 
-    // 문제 표시
     function showQuestion() {
         const q = currentTestList[currentIndex];
         const text = testType === 'word' ? q.mean : q.word;
@@ -152,16 +145,21 @@
         document.getElementById('answerInput').focus();
     }
 
-    // 정답 확인
     function checkAnswer() {
         const userAnswer = document.getElementById('answerInput').value.trim().toLowerCase();
-        const correctAnswer = (testType === 'word' ? currentTestList[currentIndex].word : currentTestList[currentIndex].mean).toLowerCase();
-        const originalIdx = currentTestList[currentIndex].originalIndex;
+        const q = currentTestList[currentIndex];
+        const originalIdx = q.originalIndex;
+        
+        // 정답들을 쉼표로 나누어 배열로 만듭니다.
+        const correctAnswers = (testType === 'word' ? q.word : q.mean)
+                                .split(',')
+                                .map(ans => ans.trim().toLowerCase());
 
-        if (userAnswer === correctAnswer) {
+        // 입력한 값이 정답 배열 중에 하나라도 일치하는지 확인합니다.
+        if (correctAnswers.includes(userAnswer)) {
             alert("정답입니다!");
         } else {
-            alert(`틀렸습니다! 정답: ${correctAnswer}`);
+            alert(`틀렸습니다! 정답: ${correctAnswers.join(', ')}`);
             if (!incorrectIndices.includes(originalIdx)) {
                 incorrectIndices.push(originalIdx);
             }
@@ -178,10 +176,12 @@
         renderList();
     }
 
-    // 힌트 보기
     function showHint() {
-        const correctAnswer = testType === 'word' ? currentTestList[currentIndex].word : currentTestList[currentIndex].mean;
-        document.getElementById('hint-text').innerText = `힌트: 첫 글자는 '${correctAnswer[0]}' 입니다.`;
+        const q = currentTestList[currentIndex];
+        const correctAnswer = testType === 'word' ? q.word : q.mean;
+        // 여러 정답 중 첫 번째 정답의 첫 글자만 힌트로 보여줍니다.
+        const firstHint = correctAnswer.split(',')[0].trim();
+        document.getElementById('hint-text').innerText = `힌트: 첫 글자는 '${firstHint[0]}' 입니다.`;
     }
 
     function resetIncorrect() {
