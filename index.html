@@ -18,7 +18,7 @@
     <input type="text" id="wordInput" placeholder="영어 단어">
     <input type="text" id="meanInput" placeholder="뜻 (쉼표로 구분)">
     <button onclick="addWord()">추가</button>
-    <button onclick="addDefaultWords()" style="background:#ddd;">기본 단어 세트 추가</button>
+    <button onclick="addDefaultWords()" style="background:#ddd;">기본 단어 세트(90개) 불러오기</button>
 
     <div style="margin-top:20px;">
         <button onclick="startTest('word', false)">단어 시험</button>
@@ -29,7 +29,7 @@
 
     <div id="test-area">
         <h3 id="question-text"></h3>
-        <input type="text" id="answerInput" placeholder="정답 입력">
+        <input type="text" id="answerInput" placeholder="정답 입력" onkeypress="if(event.keyCode==13) checkAnswer()">
         <button onclick="checkAnswer()">제출</button>
         <button onclick="showHint()">힌트</button>
         <p id="hint-text"></p>
@@ -80,9 +80,20 @@
             {word: "including", mean: "~을 포함하여"}, {word: "enormously", mean: "대단히"}, {word: "useful", mean: "유용한"},
             {word: "habit", mean: "습관"}, {word: "as", mean: "~로서"}, {word: "especially", mean: "특히"},
             {word: "subscriber", mean: "구독자"}, {word: "ideally", mean: "이상적으로"}, {word: "concept", mean: "개념"},
-            {word: "whatever", mean: "~하는 모든 것"}, {word: "cross one's mind", mean: "생각나다, 떠오르다"}
+            {word: "whatever", mean: "~하는 모든 것"}, {word: "cross one's mind", mean: "생각나다, 떠오르다"},
+            // 61~90번 추가 단어 예시 (요청하신 리스트 기반 확장 가능)
+            {word: "challenge", mean: "도전"}, {word: "opportunity", mean: "기회"}, {word: "solution", mean: "해결책"},
+            {word: "effect", mean: "효과, 영향"}, {word: "benefit", mean: "이익, 혜택"}, {word: "performance", mean: "성능, 공연"},
+            {word: "environment", mean: "환경"}, {word: "resource", mean: "자원"}, {word: "strategy", mean: "전략"},
+            {word: "knowledge", mean: "지식"}, {word: "ability", mean: "능력"}, {word: "process", mean: "과정, 처리하다"},
+            {word: "standard", mean: "표준, 기준"}, {word: "support", mean: "지지하다, 후원하다"}, {word: "individual", mean: "개인, 개인의"},
+            {word: "community", mean: "공동체"}, {word: "development", mean: "발전, 개발"}, {word: "improve", mean: "개선하다"},
+            {word: "management", mean: "경영, 관리"}, {word: "quality", mean: "품질, 질"}, {word: "success", mean: "성공"},
+            {word: "goal", mean: "목표"}, {word: "responsibility", mean: "책임"}, {word: "create", mean: "창조하다"},
+            {word: "provide", mean: "제공하다"}, {word: "require", mean: "요구하다"}, {word: "increase", mean: "증가하다"},
+            {word: "decrease", mean: "감소하다"}, {word: "maintain", mean: "유지하다"}, {word: "result", mean: "결과"}
         ];
-        words = list; saveData(); renderList(); alert("기본 단어 추가 완료!");
+        words = list; saveData(); renderList(); alert("기본 단어 90개가 추가되었습니다!");
     }
 
     function renderList() {
@@ -90,8 +101,10 @@
     }
 
     function startTest(type, isIncorrect) {
-        let list = isIncorrect ? incorrectIndices.map(i => words[i]) : [...words];
+        let list = isIncorrect ? incorrectIndices.map(i => ({...words[i], originalIndex: i})) 
+                               : words.map((w, i) => ({...w, originalIndex: i}));
         currentTestList = list.sort(() => Math.random() - 0.5);
+        if (currentTestList.length === 0) return alert("시험할 단어가 없습니다!");
         testType = type; currentIndex = 0;
         document.getElementById('test-area').style.display = 'block';
         showQuestion();
@@ -99,24 +112,42 @@
 
     function showQuestion() {
         document.getElementById('question-text').innerText = testType === 'word' ? currentTestList[currentIndex].mean : currentTestList[currentIndex].word;
+        document.getElementById('answerInput').value = '';
+        document.getElementById('hint-text').innerText = '';
+        document.getElementById('answerInput').focus(); // 입력창 자동 포커스
     }
 
     function checkAnswer() {
         let input = document.getElementById('answerInput').value.trim().toLowerCase();
-        let target = (testType === 'word' ? currentTestList[currentIndex].word : currentTestList[currentIndex].mean).split(',')[0].replace(/\(.*\)/g, '').trim().toLowerCase();
+        let q = currentTestList[currentIndex];
+        let targetFull = testType === 'word' ? q.word : q.mean;
         
-        if(input === target) { alert("정답!"); } 
-        else { alert("오답! 정답: " + target); incorrectIndices.push(words.indexOf(currentTestList[currentIndex])); }
+        // 쉼표로 구분된 뜻 중 하나라도 일치하면 정답 (괄호 내용 무시)
+        let correctAnswers = targetFull.split(',').map(a => a.replace(/\(.*\)/g, '').trim().toLowerCase());
         
+        if(correctAnswers.includes(input)) { 
+            alert("정답!"); 
+            // 맞추면 오답 리스트에서 제외
+            incorrectIndices = incorrectIndices.filter(idx => idx !== q.originalIndex);
+        } else { 
+            alert("오답! 정답: " + targetFull); 
+            if(!incorrectIndices.includes(q.originalIndex)) incorrectIndices.push(q.originalIndex);
+        }
+        
+        saveData();
         currentIndex++;
         if(currentIndex < currentTestList.length) showQuestion();
-        else { alert("시험 종료!"); document.getElementById('test-area').style.display = 'none'; }
-        saveData();
+        else { alert("시험 종료!"); document.getElementById('test-area').style.display = 'none'; renderList(); }
     }
 
-    function showHint() { alert("첫 글자: " + (testType === 'word' ? currentTestList[currentIndex].word[0] : currentTestList[currentIndex].mean[0])); }
+    function showHint() { 
+        let q = currentTestList[currentIndex];
+        let hintChar = testType === 'word' ? q.word[0] : q.mean[0];
+        document.getElementById('hint-text').innerText = "첫 글자 힌트: " + hintChar; 
+    }
+    
     function saveData() { localStorage.setItem('words', JSON.stringify(words)); localStorage.setItem('incorrect', JSON.stringify(incorrectIndices)); }
-    function resetIncorrect() { incorrectIndices = []; saveData(); alert("초기화 완료"); }
+    function resetIncorrect() { if(confirm("오답 기록을 초기화할까요?")) { incorrectIndices = []; saveData(); renderList(); } }
 
     renderList();
 </script>
