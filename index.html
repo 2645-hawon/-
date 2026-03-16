@@ -12,6 +12,7 @@
         .btn-test { background: #4a90e2; color: white; }
         .btn-wrong { background: #e67e22; color: white; }
         .btn-reset { background: #95a5a6; color: white; }
+        .btn-mix { background: #9b59b6; color: white; } /* 혼합 시험 버튼 색상 */
         
         #test-area { display: none; margin-top: 20px; padding: 30px; border: 3px solid #4a90e2; border-radius: 12px; text-align: center; background: #fff; }
         #question-info { color: #7f8c8d; font-size: 0.9em; margin-bottom: 10px; }
@@ -21,16 +22,26 @@
         .word-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .is-incorrect { background-color: #fff5f5; color: #e74c3c; }
         .badge { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+
+        /* 새로 추가된 설정 영역 스타일 */
+        .config-area { text-align: center; margin-bottom: 20px; padding: 15px; background: #edf2f7; border-radius: 10px; }
+        .config-area input { width: 60px; padding: 5px; border-radius: 5px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>📚 Voca Trainer</h1>
+
+    <div class="config-area">
+        <span>문제 개수 설정: </span>
+        <input type="number" id="testCount" value="40" min="1" max="89"> 개
+    </div>
     
     <div class="btn-group">
         <button class="btn-test" onclick="startTest('toEng', false)">뜻 → 영어</button>
         <button class="btn-test" onclick="startTest('toKor', false)">영어 → 뜻</button>
+        <button class="btn-mix" onclick="startTest('mix', false)">랜덤 혼합 시험</button>
         <button class="btn-wrong" onclick="startTest('toEng', true)">오답 시험 (뜻→영)</button>
         <button class="btn-wrong" onclick="startTest('toKor', true)">오답 시험 (영→뜻)</button>
         <button class="btn-reset" onclick="resetIncorrect()">오답 초기화</button>
@@ -85,17 +96,16 @@
     ];
 
     let words = defaultWords;
-    // 오답 리스트를 유형별로 분리하여 저장
     let wrongToEng = JSON.parse(localStorage.getItem('wrong_toEng_89')) || [];
     let wrongToKor = JSON.parse(localStorage.getItem('wrong_toKor_89')) || [];
     
     let testQueue = [], currentIndex = 0, currentType = '';
+    let correctCount = 0; // 점수 계산용
 
     function renderList() {
         const container = document.getElementById('list-container');
         document.getElementById('word-count').innerText = words.length;
         container.innerHTML = words.map((w, i) => {
-            // 어느 한 쪽이라도 틀린 기록이 있으면 오답 표시
             const isWrong = wrongToEng.includes(i) || wrongToKor.includes(i);
             return `<div class="word-item ${isWrong ? 'is-incorrect' : ''}">
                 <span><strong>${i+1}. ${w.word}</strong> : ${w.mean}</span>
@@ -105,15 +115,29 @@
     }
 
     function startTest(type, onlyWrong) {
-        // 선택한 타입(toEng / toKor)에 맞는 오답 리스트 사용
         let indices = onlyWrong 
             ? (type === 'toEng' ? wrongToEng : wrongToKor)
             : words.map((_, i) => i);
             
         if (indices.length === 0) return alert("시험볼 단어가 없습니다!");
         
-        testQueue = indices.map(id => ({...words[id], originalId: id})).sort(() => Math.random() - 0.5);
+        // [추가] 문제 개수만큼 자르기 (설정값 적용)
+        const limit = parseInt(document.getElementById('testCount').value) || indices.length;
+        
+        // 섞기
+        let selected = indices.sort(() => Math.random() - 0.5).slice(0, limit);
+        
+        testQueue = selected.map(id => {
+            // [추가] 혼합 시험일 경우 각 문제마다 랜덤으로 타입 부여
+            let finalType = type;
+            if (type === 'mix') {
+                finalType = Math.random() > 0.5 ? 'toEng' : 'toKor';
+            }
+            return {...words[id], originalId: id, questionType: finalType};
+        });
+
         currentIndex = 0;
+        correctCount = 0; // 초기화
         currentType = type;
         document.getElementById('test-area').style.display = 'block';
         showQuestion();
@@ -122,7 +146,8 @@
     function showQuestion() {
         const q = testQueue[currentIndex];
         document.getElementById('question-info').innerText = `문제 ${currentIndex + 1} / ${testQueue.length}`;
-        document.getElementById('question-text').innerText = (currentType === 'toEng') ? q.mean : q.word;
+        // 개별 문제에 부여된 questionType에 따라 문제 텍스트 결정
+        document.getElementById('question-text').innerText = (q.questionType === 'toEng') ? q.mean : q.word;
         document.getElementById('answerInput').value = '';
         document.getElementById('answerInput').focus();
     }
@@ -132,7 +157,8 @@
         const input = document.getElementById('answerInput').value.trim().toLowerCase();
         let isCorrect = false;
 
-        if (currentType === 'toEng') {
+        // 해당 문제의 타입(questionType)으로 채점
+        if (q.questionType === 'toEng') {
             isCorrect = (input === q.word.toLowerCase());
             if (isCorrect) {
                 wrongToEng = wrongToEng.filter(id => id !== q.originalId);
@@ -151,15 +177,15 @@
 
         if (isCorrect) {
             alert("정답입니다! ✨");
+            correctCount++;
         } else {
-            alert(`오답입니다! ❌\n정답: ${currentType === 'toEng' ? q.word : q.mean}`);
+            alert(`오답입니다! ❌\n정답: ${q.questionType === 'toEng' ? q.word : q.mean}`);
         }
 
         saveAndNext();
     }
 
     function saveAndNext() {
-        // 각 저장소에 따로 저장
         localStorage.setItem('wrong_toEng_89', JSON.stringify(wrongToEng));
         localStorage.setItem('wrong_toKor_89', JSON.stringify(wrongToKor));
         
@@ -167,7 +193,9 @@
         if (currentIndex < testQueue.length) {
             showQuestion();
         } else {
-            alert("시험이 끝났습니다!");
+            // [추가] 최종 점수 합산 알림
+            const score = Math.round((correctCount / testQueue.length) * 100);
+            alert(`시험이 끝났습니다!\n🎯 점수: ${score}점\n(맞춘 개수: ${correctCount} / 전체: ${testQueue.length})`);
             document.getElementById('test-area').style.display = 'none';
             renderList();
         }
