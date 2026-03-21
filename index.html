@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Voca Trainer Pro (89 Words)</title>
+    <title>Voca Trainer Pro (90 Words)</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background: #f5f7fa; color: #333; }
         .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -12,18 +12,17 @@
         .btn-test { background: #4a90e2; color: white; }
         .btn-wrong { background: #e67e22; color: white; }
         .btn-reset { background: #95a5a6; color: white; }
-        .btn-mix { background: #9b59b6; color: white; } /* 혼합 시험 버튼 색상 */
+        .btn-mix { background: #9b59b6; color: white; }
         
         #test-area { display: none; margin-top: 20px; padding: 30px; border: 3px solid #4a90e2; border-radius: 12px; text-align: center; background: #fff; }
         #question-info { color: #7f8c8d; font-size: 0.9em; margin-bottom: 10px; }
         #question-text { font-size: 2.5em; margin: 20px 0; color: #2c3e50; font-weight: bold; }
-        input[type="text"] { width: 80%; padding: 12px; font-size: 1.2em; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; outline-color: #4a90e2; }
+        input[type="text"] { width: 80%; padding: 12px; font-size: 1.2em; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; outline-color: #4a90e2; text-align: center; }
         
         .word-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .is-incorrect { background-color: #fff5f5; color: #e74c3c; }
         .badge { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
 
-        /* 새로 추가된 설정 영역 스타일 */
         .config-area { text-align: center; margin-bottom: 20px; padding: 15px; background: #edf2f7; border-radius: 10px; }
         .config-area input { width: 60px; padding: 5px; border-radius: 5px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold; }
     </style>
@@ -31,11 +30,11 @@
 <body>
 
 <div class="container">
-    <h1>📚 Voca Trainer</h1>
+    <h1>📚 Voca Trainer (90 Words)</h1>
 
     <div class="config-area">
         <span>문제 개수 설정: </span>
-        <input type="number" id="testCount" value="40" min="1" max="89"> 개
+        <input type="number" id="testCount" value="30" min="1" max="90"> 개
     </div>
     
     <div class="btn-group">
@@ -62,45 +61,34 @@
 </div>
 
 <script>
-    const defaultWords = [
-        {word: "lead", mean: "이끌다"}, {word: "meaningful", mean: "의미 있는"}, {word: "comprehension", mean: "이해"},
-        {word: "expand", mean: "확장하다"}, {word: "reflective", mean: "반영하는, 사색적인"}, {word: "routine", mean: "일상"},
-        {word: "communicative", mean: "의사소통의"}, {word: "function", mean: "기능"}, {word: "all the time", mean: "항상"},
-        {word: "find out", mean: "알아내다"}, {word: "along", mean: "~을 따라"}, {word: "be talented at", mean: "~에 재능이 있다"},
-        {word: "be interested in", mean: "~에 관심이 있다"}, {word: "choir", mean: "합창단"}, {word: "incredible", mean: "놀라운"},
-        {word: "by the way", mean: "그런데"}, {word: "How about ~ing?", mean: "~ing 하는 건 어때?"}, {word: "while", mean: "~하는 동안"},
-        {word: "even", mean: "심지어"}, {word: "critically", mean: "비판적으로"}, {word: "lecture", mean: "강의"},
-        {word: "fill in", mean: "~을 채우다"}, {word: "discover", mean: "발견하다"}, {word: "passion", mean: "열정"},
-        {word: "attend", mean: "참석하다"}, {word: "explore", mean: "탐구하다"}, {word: "introduction", mean: "소개"},
-        {word: "experience", mean: "경험"}, {word: "aid", mean: "돕다"}, {word: "enhance", mean: "향상시키다, 높이다"},
-        {word: "course", mean: "과정"}, {word: "anyone who", mean: "~하는 누구나"}, {word: "technique", mean: "기법, 기술"},
-        {word: "grab", mean: "쥐다"}, {word: "continuously", mean: "계속해서"}, {word: "thought", mean: "생각"},
-        {word: "flow", mean: "흐르다"}, {word: "in a while", mean: "한동안"}, {word: "I'm thinking of ~ing.", mean: "나는 ~ing 할까 해."},
-        {word: "inner", mean: "내면의"}, {word: "grammar", mean: "문법"}, {word: "those who", mean: "~하는 사람들"},
-        {word: "similar", mean: "유사한"}, {word: "behave", mean: "행동하다"}, {word: "social gathering", mean: "친목 모임"},
-        {word: "approach", mean: "접근하다"}, {word: "conversation", mean: "대화"}, {word: "logical", mean: "논리적인"},
-        {word: "advice", mean: "충고"}, {word: "concern", mean: "걱정"}, {word: "prefer", mean: "선호하다"},
-        {word: "detailed", mean: "상세한"}, {word: "socialize", mean: "사귀다"}, {word: "a variety of", mean: "여러 가지의"},
-        {word: "actually", mean: "실제로, 사실은"}, {word: "quite", mean: "꽤"}, {word: "different from", mean: "~와 다른"},
-        {word: "form", mean: "형태"}, {word: "connection", mean: "연결"}, {word: "intend", mean: "의도하다"},
-        {word: "be not sure if", mean: "~인지 아닌지 확실하지 않다"}, {word: "current", mean: "현재의"}, {word: "emotion", mean: "감정"},
-        {word: "grateful", mean: "감사해하는"}, {word: "complete", mean: "완성하다"}, {word: "appropriate", mean: "적절한"},
-        {word: "relieve", mean: "완화하다"}, {word: "overcome", mean: "극복하다"}, {word: "private", mean: "사적인, 비공개의"},
-        {word: "concentrate on", mean: "~에 집중하다"}, {word: "physical", mean: "신체적인"}, {word: "disability", mean: "장애"},
-        {word: "participate in", mean: "~에 참가하다"}, {word: "careful", mean: "조심하는, 주의 깊은"}, {word: "store", mean: "저장하다"},
-        {word: "personal", mean: "개인적인"}, {word: "anxiety", mean: "불안, 염려"}, {word: "host", mean: "주최자"},
-        {word: "including", mean: "~을 포함하여"}, {word: "enormously", mean: "대단히"}, {word: "useful", mean: "유용한"},
-        {word: "habit", mean: "습관"}, {word: "as", mean: "~로서"}, {word: "especially", mean: "특히"},
-        {word: "subscriber", mean: "구독자"}, {word: "ideally", mean: "이상적으로"}, {word: "concept", mean: "개념"},
-        {word: "whatever", mean: "~하는 모든 것"}, {word: "cross one's mind", mean: "생각나다, 떠오르다"}
+    // 이미지 3장의 90개 단어로 데이터 교체
+    const words90 = [
+        {word: "until 주어 동사", mean: "주어 동사할 때까지"}, {word: "fill", mean: "채우다"}, {word: "originally", mean: "원래"}, {word: "loss", mean: "분실, 상실"}, {word: "creativity", mean: "창의성"},
+        {word: "purpose", mean: "목적"}, {word: "rule", mean: "규칙"}, {word: "judge", mean: "판단하다"}, {word: "meant to be ~", mean: "~하기로 되어 있는"}, {word: "cleanse", mean: "정화하다"},
+        {word: "correctly", mean: "정확하게"}, {word: "keep", mean: "유지하다"}, {word: "completely", mean: "완전히"}, {word: "honestly", mean: "솔직히"}, {word: "be advised to ~", mean: "~하도록 조언 받다"},
+        {word: "tend to ~", mean: "~하는 경향이 있다"}, {word: "stressful", mean: "스트레스가 많은"}, {word: "complaint", mean: "불평"}, {word: "improve", mean: "개선하다"}, {word: "recipe", mean: "조리법"},
+        {word: "keep ~ing", mean: "계속 ~ing 하다"}, {word: "reach", mean: "도달하다"}, {word: "a sort of ~", mean: "일종의 ~"}, {word: "nowadays", mean: "요즘에는"}, {word: "productive", mean: "생산적인"},
+        {word: "junior", mean: "3학년"}, {word: "random", mean: "무작위의"}, {word: "slight", mean: "약간의"}, {word: "assignment", mean: "과제"}, {word: "normally", mean: "보통은"},
+        {word: "by ~ing", mean: "~ing 함으로써"}, {word: "task", mean: "과업, 일"}, {word: "towards ~", mean: "~을 향해"}, {word: "come up with ~", mean: "~을 떠올리다"}, {word: "a sense of ~", mean: "~의 감각"},
+        {word: "most importantly", mean: "가장 중요한 것은"}, {word: "much (+ 비교급)", mean: "훨씬"}, {word: "totally", mean: "전적으로"}, {word: "relate to ~", mean: "~에 공감하다"}, {word: "during 명사", mean: "명사 동안"},
+        {word: "at that time", mean: "그 당시에는"}, {word: "feel lost", mean: "어찌할 바를 모르다"}, {word: "unsure", mean: "불확실한"}, {word: "expect", mean: "기대하다"}, {word: "stick to ~", mean: "~를 계속하다"},
+        {word: "release", mean: "방출하다"}, {word: "release ", mean: "개봉"}, {word: "onto ~", mean: "~ 위에"}, {word: "tension", mean: "긴장감"}, {word: "gain", mean: "얻다"},
+        {word: "performance", mean: "수행"}, {word: "for instance", mean: "예를 들어"}, {word: "challenging", mean: "도전적인"}, {word: "sympathize with ~", mean: "~에 공감하다"}, {word: "in terms of ~", mean: "~에 관하여"},
+        {word: "needs", mean: "요구사항"}, {word: "value", mean: "가치"}, {word: "come to know", mean: "알게 되다"}, {word: "childhood", mean: "어린 시절"}, {word: "gradually", mean: "점진적으로"},
+        {word: "vague", mean: "애매한"}, {word: "successful", mean: "성공적인"}, {word: "publish", mean: "발행하다"}, {word: "still", mean: "여전히"}, {word: "drive", mean: "추진력"},
+        {word: "achieve", mean: "달성하다"}, {word: "aim", mean: "목표"}, {word: "try ~ing", mean: "시험 삼아 ~해보다"}, {word: "perfectionist", mean: "완벽주의자"}, {word: "though", mean: "그러나"},
+        {word: "miss", mean: "놓치다"}, {word: "a few ~", mean: "몇몇 ~"}, {word: "ultimate", mean: "궁극적인"}, {word: "indifferent", mean: "무관심한"}, {word: "encouraging", mean: "고무적인"},
+        {word: "given", mean: "주어진"}, {word: "mistake", mean: "실수"}, {word: "engage in ~", mean: "~에 관여하다"}, {word: "more of", mean: "오히려"}, {word: "rather than ~", mean: "~보다는"},
+        {word: "further", mean: "추가적인"}, {word: "in the beginning", mean: "처음에는"}, {word: "through ~", mean: "~을 통해"}, {word: "repetition", mean: "반복"}, {word: "repeat", mean: "반복하다"},
+        {word: "specific", mean: "구체적인"}, {word: "meditate", mean: "명상하다"}, {word: "regularly", mean: "규칙적으로"}, {word: "even (+ 비교급)", mean: "훨씬"}, {word: "combine A with B", mean: "A와 B를 결합하다"}
     ];
 
-    let words = defaultWords;
-    let wrongToEng = JSON.parse(localStorage.getItem('wrong_toEng_89')) || [];
-    let wrongToKor = JSON.parse(localStorage.getItem('wrong_toKor_89')) || [];
+    let words = words90;
+    let wrongToEng = JSON.parse(localStorage.getItem('wrong_toEng_90')) || [];
+    let wrongToKor = JSON.parse(localStorage.getItem('wrong_toKor_90')) || [];
     
     let testQueue = [], currentIndex = 0, currentType = '';
-    let correctCount = 0; // 점수 계산용
+    let correctCount = 0;
 
     function renderList() {
         const container = document.getElementById('list-container');
@@ -116,19 +104,15 @@
 
     function startTest(type, onlyWrong) {
         let indices = onlyWrong 
-            ? (type === 'toEng' ? wrongToEng : wrongToKor)
+            ? (type === 'toEng' ? wrongToEng : (type === 'toKor' ? wrongToKor : [...new Set([...wrongToEng, ...wrongToKor])]))
             : words.map((_, i) => i);
             
         if (indices.length === 0) return alert("시험볼 단어가 없습니다!");
         
-        // [추가] 문제 개수만큼 자르기 (설정값 적용)
         const limit = parseInt(document.getElementById('testCount').value) || indices.length;
-        
-        // 섞기
         let selected = indices.sort(() => Math.random() - 0.5).slice(0, limit);
         
         testQueue = selected.map(id => {
-            // [추가] 혼합 시험일 경우 각 문제마다 랜덤으로 타입 부여
             let finalType = type;
             if (type === 'mix') {
                 finalType = Math.random() > 0.5 ? 'toEng' : 'toKor';
@@ -137,7 +121,7 @@
         });
 
         currentIndex = 0;
-        correctCount = 0; // 초기화
+        correctCount = 0;
         currentType = type;
         document.getElementById('test-area').style.display = 'block';
         showQuestion();
@@ -146,7 +130,6 @@
     function showQuestion() {
         const q = testQueue[currentIndex];
         document.getElementById('question-info').innerText = `문제 ${currentIndex + 1} / ${testQueue.length}`;
-        // 개별 문제에 부여된 questionType에 따라 문제 텍스트 결정
         document.getElementById('question-text').innerText = (q.questionType === 'toEng') ? q.mean : q.word;
         document.getElementById('answerInput').value = '';
         document.getElementById('answerInput').focus();
@@ -154,20 +137,20 @@
 
     function checkAnswer() {
         const q = testQueue[currentIndex];
-        const input = document.getElementById('answerInput').value.trim().toLowerCase();
+        const input = document.getElementById('answerInput').value.trim().toLowerCase().replace(/\s/g, '');
         let isCorrect = false;
 
-        // 해당 문제의 타입(questionType)으로 채점
         if (q.questionType === 'toEng') {
-            isCorrect = (input === q.word.toLowerCase());
+            const target = q.word.toLowerCase().replace(/\s/g, '');
+            isCorrect = (input === target);
             if (isCorrect) {
                 wrongToEng = wrongToEng.filter(id => id !== q.originalId);
             } else {
                 if (!wrongToEng.includes(q.originalId)) wrongToEng.push(q.originalId);
             }
         } else {
-            const correctMeans = q.mean.split(/[,/]/).map(s => s.trim());
-            isCorrect = correctMeans.some(m => input === m || input === m.replace(/\s/g, ''));
+            const target = q.mean.toLowerCase().replace(/\s/g, '');
+            isCorrect = target.includes(input) && input.length > 0;
             if (isCorrect) {
                 wrongToKor = wrongToKor.filter(id => id !== q.originalId);
             } else {
@@ -186,27 +169,26 @@
     }
 
     function saveAndNext() {
-        localStorage.setItem('wrong_toEng_89', JSON.stringify(wrongToEng));
-        localStorage.setItem('wrong_toKor_89', JSON.stringify(wrongToKor));
+        localStorage.setItem('wrong_toEng_90', JSON.stringify(wrongToEng));
+        localStorage.setItem('wrong_toKor_90', JSON.stringify(wrongToKor));
         
         currentIndex++;
         if (currentIndex < testQueue.length) {
             showQuestion();
         } else {
-            // [추가] 최종 점수 합산 알림
             const score = Math.round((correctCount / testQueue.length) * 100);
-            alert(`시험이 끝났습니다!\n🎯 점수: ${score}점\n(맞춘 개수: ${correctCount} / 전체: ${testQueue.length})`);
+            alert(`시험 완료!\n🎯 점수: ${score}점 (${correctCount} / ${testQueue.length})`);
             document.getElementById('test-area').style.display = 'none';
             renderList();
         }
     }
 
     function resetIncorrect() {
-        if(confirm("모든 유형의 오답 기록을 삭제할까요?")) {
+        if(confirm("모든 오답 기록을 초기화할까요?")) {
             wrongToEng = [];
             wrongToKor = [];
-            localStorage.setItem('wrong_toEng_89', '[]');
-            localStorage.setItem('wrong_toKor_89', '[]');
+            localStorage.removeItem('wrong_toEng_90');
+            localStorage.removeItem('wrong_toKor_90');
             renderList();
         }
     }
